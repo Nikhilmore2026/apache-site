@@ -1,18 +1,27 @@
-name: Deploy Apache Site
+name: Apache Site Deployment
 
 on:
   push:
     branches:
-      - master   # or main (check your branch)
+      - main
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Copy files to Apache folder
+      - name: Stop existing container (if running)
         run: |
-          sudo cp -r * /var/www/html/
+          docker stop apache-container || true
+          docker rm apache-container || true
+
+      - name: Build Docker Image
+        run: |
+          docker build -t apache-site .
+
+      - name: Run Container
+        run: |
+          docker run -d -p 8082:80 --name apache-container apache-site
